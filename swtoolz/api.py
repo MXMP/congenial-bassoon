@@ -2,6 +2,7 @@ from typing import Dict
 
 import requests
 
+# TODO: Добавить в Readme чейнджлог
 
 class SWToolz:
     """
@@ -12,7 +13,7 @@ class SWToolz:
         swt = SWToolz(swtoolz_url, swtoolz_user, swtoolz_community_number, swtoolz_port)
         swt.change_port_admin_state(device_ip, port_num, 'enabled')
 
-    .. _SWToolz-Core: http://wiki.powernet.com.ru/services/swtoolz-core?s[]=swtoolz
+    .. _SWToolz-Core: https://github.com/MXMP/swtoolz-core
     """
 
     def __init__(self, url: str, user: str, community_number: int, port: int = 7377, timeout: float = 2.0):
@@ -38,6 +39,34 @@ class SWToolz:
         self.request_url_template = f'{self.server_url}:{self.service_port}/{self.user}/{{device_ip}}/' \
             f'{self.community_number}/{{command}}'
 
+    def get_admin_status_dict(self, device_ip: str, reverse: bool = False) -> Dict:
+        """
+        Возвращает словарь "административное состояние -> код" (если reverse установлен в True, то ключи и значения в
+        словаре меняются местами).
+
+        :param str device_ip: ip-адрес коммутатора
+        :param bool reverse: менять ли местами ключи и значения в словаре
+        :rtype Dict:
+        :return: словарь соответсвия
+        """
+
+        # подставляем в шаблон URL команду и ip-адрес устройства
+        admin_status_url = self.request_url_template.format(device_ip=device_ip, command='AdminStatus')
+        admin_status_response = requests.get(admin_status_url, timeout=self.timeout)
+        if admin_status_response.status_code == requests.codes.ok:
+            if reverse:
+                admin_status_dict: Dict = {}  # словарь соответсвия административных состояний и их кодов
+                # заполняем словарь соответсвия и меняем ключ и значение местами
+                for code, name in admin_status_response.json()['response']['data']['AdminStatus'].items():
+                    admin_status_dict[name] = code
+                return admin_status_dict
+            else:
+                # возвращаем "как есть"
+                return admin_status_response.json()['response']['data']['AdminStatus']
+        else:
+            # TODO: кидать эксепшн наверное лучше будет
+            return False
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
@@ -54,16 +83,7 @@ class SWToolz:
         # К сожалению, API SWToolz-Core не очень удобен. Поэтому чтобы понять какой числовой код нужно слать сервису
         # чтобы включить или выключить порт нужно сначала спросить "словарь соответствия" AdminStatus. Сделано это так,
         # потому что на всех устройствах разные SNMP индексы для состояний.
-        admin_status_dict: Dict = {}  # словарь соответсвия административных состояний и их кодов
-        # подставляем в шаблон URL команду и ip-адрес устройства
-        admin_status_url = self.request_url_template.format(device_ip=device_ip, command='AdminStatus')
-        admin_status_response = requests.get(admin_status_url, timeout=self.timeout)
-        if admin_status_response.status_code == requests.codes.ok:
-            # заполняем словарь соответсвия (меняем ключ и значение местами)
-            for code, name in admin_status_response.json()['response']['data']['AdminStatus'].items():
-                admin_status_dict[name] = code
-        else:
-            return False
+        admin_status_dict = self.get_admin_status_dict(device_ip=device_ip, reverse=True)
 
         # Для того, что бы включить/выключить порт нужно послать SWToolz-Core команду
         # set_AdminStatus/{номер порта}/{код нужного административного состояния}
@@ -100,6 +120,7 @@ class SWToolz:
         # административному состоянию соответствует, нужно сначала спросить "словари соответствия" AdminStatus и
         # MediumType. Сделано это так, потому что на всех устройствах разные SNMP индексы для состояний.
         admin_status_dict: Dict = {}  # словарь соответсвия административных состояний и их кодов
+        # TODO: вынести в отдельный метод запрос словаря типов среды
         medium_type_dict: Dict = {}  # словарь соответсвтия типов среды
         # подставляем в шаблон URL команду и ip-адрес устройства
         dicts_url = self.request_url_template.format(device_ip=device_ip, command='AdminStatus+/MediumType')
@@ -117,6 +138,7 @@ class SWToolz:
         # что нужно.
         command_url_part = f'get_SinglePort/{port_num}'
         # подставляем в шаблон URL команду и ip-адрес устройства
+        # TODO: намутить метод для формирования конечного url
         get_admin_state_url = self.request_url_template.format(device_ip=device_ip, command=command_url_part)
         get_admin_state_response = requests.get(get_admin_state_url, timeout=self.timeout)
         if get_admin_state_response.status_code == requests.codes.ok:
