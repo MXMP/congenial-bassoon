@@ -18,7 +18,7 @@ from swtoolz import SWToolz
 swtoolz_community_number = 2
 swtoolz_port = 7377
 
-swt = SWToolz('swtoolz_url', 'swtoolz_user')
+swt = SWToolz('swtoolz_url', 'swtoolz_user', swtoolz_community_number, swtoolz_port)
 swt.change_port_admin_state('10.90.90.90', 10, 'enabled')
 ```
 
