@@ -51,6 +51,26 @@ class SWToolz:
 
         return self.request_url_template.format(device_ip=device_ip, command='+/'.join(commands))
 
+    def execute(self, device_ip: str, commands: List) -> Dict:
+        """
+        Выполняем запрос к SWToolz-Core, предварительно "склеив" команды.
+
+        :param str device_ip: ip-адрес коммутатора
+        :param List commands: список с командами (если на входе строка, то она приведется к списку)
+        :rtype Dict:
+        :return: словарь с результатами запроса
+        """
+
+        # если команды переданы как строка, то формируем из них список из одного элемента
+        if isinstance(commands, str):
+            commands = [commands]
+
+        url = self.make_request_url(device_ip, commands)
+        response = requests.get(url, timeout=self.timeout)
+
+        if response.status_code == requests.codes.ok:
+            return response.json()['response']['data']
+
     def get_admin_status_dict(self, device_ip: str, reverse: bool = False) -> Dict:
         """
         Возвращает словарь "административное состояние -> код" (если reverse установлен в True, то ключи и значения в
