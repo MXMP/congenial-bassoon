@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import requests
 
@@ -39,6 +39,18 @@ class SWToolz:
         self.request_url_template = f'{self.server_url}:{self.service_port}/{self.user}/{{device_ip}}/' \
             f'{self.community_number}/{{command}}'
 
+    def make_request_url(self, device_ip: str, commands: List) -> str:
+        """
+        Формирует строку для выполонения запроса к SWToolz-Core, команды "склеиваются" через '+/'.
+
+        :param str device_ip: ip-адрес коммутатора
+        :param List commands: список с командами
+        :rtype str:
+        :return: url для выполнения запроса
+        """
+
+        return self.request_url_template.format(device_ip=device_ip, command='+/'.join(commands))
+
     def get_admin_status_dict(self, device_ip: str, reverse: bool = False) -> Dict:
         """
         Возвращает словарь "административное состояние -> код" (если reverse установлен в True, то ключи и значения в
@@ -51,7 +63,7 @@ class SWToolz:
         """
 
         # подставляем в шаблон URL команду и ip-адрес устройства
-        admin_status_url = self.request_url_template.format(device_ip=device_ip, command='AdminStatus')
+        admin_status_url = self.make_request_url(device_ip, ['AdminStatus'])
         admin_status_response = requests.get(admin_status_url, timeout=self.timeout)
         if admin_status_response.status_code == requests.codes.ok:
             if reverse:
@@ -93,7 +105,7 @@ class SWToolz:
             # неправильно передан target_state
             return False
         # подставляем в шаблон URL команду и ip-адрес устройства
-        change_state_url = self.request_url_template.format(device_ip=device_ip, command=command_url_part)
+        change_state_url = self.make_request_url(device_ip, [command_url_part])
         change_state_response = requests.get(change_state_url, timeout=self.timeout)
         if change_state_response.status_code == requests.codes.ok:
             # проверяем выполнилась ли команда
@@ -126,7 +138,7 @@ class SWToolz:
         medium_type_dict: Dict = {}  # словарь соответсвтия типов среды
 
         # подставляем в шаблон URL команду и ip-адрес устройства
-        medium_type_url = self.request_url_template.format(device_ip=device_ip, command='MediumType')
+        medium_type_url = self.make_request_url(device_ip, ['MediumType'])
         medium_type_response = requests.get(medium_type_url, timeout=self.timeout)
         if medium_type_response.status_code == requests.codes.ok:
             # заполняем словари соответсвия (меняем ключ и значение местами)
@@ -138,10 +150,7 @@ class SWToolz:
         # Для того, что бы узнасть администартивное состояние порта нужно послать SWToolz-Core команду
         # get_SinglePort/{номер порта}, тем самым узнав всю информацию об этом порту. А потом уже оттуда выбрать, то
         # что нужно.
-        command_url_part = f'get_SinglePort/{port_num}'
-        # подставляем в шаблон URL команду и ip-адрес устройства
-        # TODO: намутить метод для формирования конечного url
-        get_admin_state_url = self.request_url_template.format(device_ip=device_ip, command=command_url_part)
+        get_admin_state_url = self.make_request_url(device_ip, [f'get_SinglePort/{port_num}'])
         get_admin_state_response = requests.get(get_admin_state_url, timeout=self.timeout)
         if get_admin_state_response.status_code == requests.codes.ok:
             try:
