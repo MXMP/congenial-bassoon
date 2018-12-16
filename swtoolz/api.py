@@ -115,20 +115,22 @@ class SWToolz:
         :return: административное состояние ('enabled'/'disabled')
         """
 
-        # TODO: убрать повторение запроса словаря с административным статусом
         # К сожалению, API SWToolz-Core не очень удобен. Поэтому чтобы понять какой числовой код какому типу среды или
         # административному состоянию соответствует, нужно сначала спросить "словари соответствия" AdminStatus и
         # MediumType. Сделано это так, потому что на всех устройствах разные SNMP индексы для состояний.
-        admin_status_dict: Dict = {}  # словарь соответсвия административных состояний и их кодов
+
+        # получаем словарь соответсвия административных состояний и их кодов
+        admin_status_dict = self.get_admin_status_dict(device_ip)
+
         # TODO: вынести в отдельный метод запрос словаря типов среды
         medium_type_dict: Dict = {}  # словарь соответсвтия типов среды
+
         # подставляем в шаблон URL команду и ip-адрес устройства
-        dicts_url = self.request_url_template.format(device_ip=device_ip, command='AdminStatus+/MediumType')
-        dicts_response = requests.get(dicts_url, timeout=self.timeout)
-        if dicts_response.status_code == requests.codes.ok:
+        medium_type_url = self.request_url_template.format(device_ip=device_ip, command='MediumType')
+        medium_type_response = requests.get(medium_type_url, timeout=self.timeout)
+        if medium_type_response.status_code == requests.codes.ok:
             # заполняем словари соответсвия (меняем ключ и значение местами)
-            admin_status_dict = dicts_response.json()['response']['data']['AdminStatus']
-            for code, name in dicts_response.json()['response']['data']['MediumType'].items():
+            for code, name in medium_type_response.json()['response']['data']['MediumType'].items():
                 medium_type_dict[name] = code
         else:
             return ''

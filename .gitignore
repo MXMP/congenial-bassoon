@@ -3,3 +3,4 @@
 /build/
 /dist/
 /swtoolz.egg-info/
+/tests/
