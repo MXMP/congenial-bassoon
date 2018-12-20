@@ -105,6 +105,22 @@ class SWToolz:
 
         return self.reverse_dict(admin_status_dict) if reverse else admin_status_dict
 
+    def get_medium_type_dict(self, device_ip: str, reverse: bool = False) -> Dict:
+        """
+        Возвращает словарь "тип среды -> код" (если reverse установлен в True, то ключи и значения в
+        словаре меняются местами).
+
+        :param str device_ip: ip-адрес коммутатора
+        :param bool reverse: менять ли местами ключи и значения в словаре
+        :rtype Dict:
+        :return: словарь соответсвия
+        """
+
+        command = 'MediumType'
+        medium_type_dict = self.execute(device_ip, [command])[command]
+
+        return self.reverse_dict(medium_type_dict) if reverse else medium_type_dict
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
@@ -160,18 +176,7 @@ class SWToolz:
         # получаем словарь соответсвия административных состояний и их кодов
         admin_status_dict = self.get_admin_status_dict(device_ip)
 
-        # TODO: вынести в отдельный метод запрос словаря типов среды
-        medium_type_dict: Dict = {}  # словарь соответсвтия типов среды
-
-        # подставляем в шаблон URL команду и ip-адрес устройства
-        medium_type_url = self.make_request_url(device_ip, ['MediumType'])
-        medium_type_response = requests.get(medium_type_url, timeout=self.timeout)
-        if medium_type_response.status_code == requests.codes.ok:
-            # заполняем словари соответсвия (меняем ключ и значение местами)
-            for code, name in medium_type_response.json()['response']['data']['MediumType'].items():
-                medium_type_dict[name] = code
-        else:
-            return ''
+        medium_type_dict = self.get_medium_type_dict(device_ip, True)
 
         # Для того, что бы узнасть администартивное состояние порта нужно послать SWToolz-Core команду
         # get_SinglePort/{номер порта}, тем самым узнав всю информацию об этом порту. А потом уже оттуда выбрать, то
