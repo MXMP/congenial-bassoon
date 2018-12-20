@@ -172,21 +172,15 @@ class SWToolz:
         # К сожалению, API SWToolz-Core не очень удобен. Поэтому чтобы понять какой числовой код какому типу среды или
         # административному состоянию соответствует, нужно сначала спросить "словари соответствия" AdminStatus и
         # MediumType. Сделано это так, потому что на всех устройствах разные SNMP индексы для состояний.
-
-        # получаем словарь соответсвия административных состояний и их кодов
         admin_status_dict = self.get_admin_status_dict(device_ip)
-
         medium_type_dict = self.get_medium_type_dict(device_ip, True)
 
         # Для того, что бы узнасть администартивное состояние порта нужно послать SWToolz-Core команду
         # get_SinglePort/{номер порта}, тем самым узнав всю информацию об этом порту. А потом уже оттуда выбрать, то
         # что нужно.
-        get_admin_state_url = self.make_request_url(device_ip, [f'get_SinglePort/{port_num}'])
-        get_admin_state_response = requests.get(get_admin_state_url, timeout=self.timeout)
-        if get_admin_state_response.status_code == requests.codes.ok:
-            try:
-                status_code = get_admin_state_response.json()['response']['data']['AdminStatus'][
-                    f'{port_num}.{medium_type_dict[media]}']
-                return admin_status_dict[status_code]
-            except IndexError:
-                return ''
+        admin_status = self.execute(device_ip, [f'get_SinglePort/{port_num}'])
+        try:
+            status_code = admin_status['AdminStatus'][f'{port_num}.{medium_type_dict[media]}']
+            return admin_status_dict[status_code]
+        except IndexError:
+            return ''
