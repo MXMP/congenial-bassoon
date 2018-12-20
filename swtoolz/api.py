@@ -39,6 +39,21 @@ class SWToolz:
         self.request_url_template = f'{self.server_url}:{self.service_port}/{self.user}/{{device_ip}}/' \
             f'{self.community_number}/{{command}}'
 
+    @staticmethod
+    def reverse_dict(input_dict: Dict) -> Dict:
+        """
+        Меняет местами ключи и значения.
+
+        :param Dict input_dict: словарь, в котором нужно менять местами ключи со значениями
+        :rtype Dict:
+        :return: словарь, в котором поменяны местами ключи со значениями
+        """
+        output_dict = {}
+        for key, value in input_dict.items():
+            output_dict[value] = key
+
+        return output_dict
+
     def make_request_url(self, device_ip: str, commands: List) -> str:
         """
         Формирует строку для выполонения запроса к SWToolz-Core, команды "склеиваются" через '+/'.
@@ -48,6 +63,10 @@ class SWToolz:
         :rtype str:
         :return: url для выполнения запроса
         """
+
+        # если команды переданы как строка, то формируем из них список из одного элемента
+        if isinstance(commands, str):
+            commands = [commands]
 
         return self.request_url_template.format(device_ip=device_ip, command='+/'.join(commands))
 
@@ -61,15 +80,14 @@ class SWToolz:
         :return: словарь с результатами запроса
         """
 
-        # если команды переданы как строка, то формируем из них список из одного элемента
-        if isinstance(commands, str):
-            commands = [commands]
-
         url = self.make_request_url(device_ip, commands)
         response = requests.get(url, timeout=self.timeout)
 
         if response.status_code == requests.codes.ok:
             return response.json()['response']['data']
+        else:
+            # TODO: кидать эксепшн наверное лучше будет
+            return False
 
     def get_admin_status_dict(self, device_ip: str, reverse: bool = False) -> Dict:
         """
@@ -82,22 +100,10 @@ class SWToolz:
         :return: словарь соответсвия
         """
 
-        # подставляем в шаблон URL команду и ip-адрес устройства
-        admin_status_url = self.make_request_url(device_ip, ['AdminStatus'])
-        admin_status_response = requests.get(admin_status_url, timeout=self.timeout)
-        if admin_status_response.status_code == requests.codes.ok:
-            if reverse:
-                admin_status_dict: Dict = {}  # словарь соответсвия административных состояний и их кодов
-                # заполняем словарь соответсвия и меняем ключ и значение местами
-                for code, name in admin_status_response.json()['response']['data']['AdminStatus'].items():
-                    admin_status_dict[name] = code
-                return admin_status_dict
-            else:
-                # возвращаем "как есть"
-                return admin_status_response.json()['response']['data']['AdminStatus']
-        else:
-            # TODO: кидать эксепшн наверное лучше будет
-            return False
+        command = 'AdminStatus'
+        admin_status_dict = self.execute(device_ip, [command])[command]
+
+        return self.reverse_dict(admin_status_dict) if reverse else admin_status_dict
 
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
