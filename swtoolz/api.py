@@ -89,6 +89,21 @@ class SWToolz:
             # TODO: кидать эксепшн наверное лучше будет
             return False
 
+    def get_dict(self, device_ip: str, dict_name: str, reverse: bool = False) -> Dict:
+        """
+        Возвращает запрашиваемый словарь соответствия (если reverse установлен в True, то ключи и значения в
+        словаре меняются местами).
+
+        :param str device_ip: ip-адрес коммутатора
+        :param str dict_name: название словаря для получения
+        :param bool reverse: менять ли местами ключи и значения в словаре
+        :rtype Dict:
+        :return: словарь соответсвия
+        """
+
+        result_dict = self.execute(device_ip, [dict_name])[dict_name]
+        return self.reverse_dict(result_dict) if reverse else result_dict
+
     def get_admin_status_dict(self, device_ip: str, reverse: bool = False) -> Dict:
         """
         Возвращает словарь "административное состояние -> код" (если reverse установлен в True, то ключи и значения в
@@ -100,10 +115,10 @@ class SWToolz:
         :return: словарь соответсвия
         """
 
-        command = 'AdminStatus'
-        admin_status_dict = self.execute(device_ip, [command])[command]
-
-        return self.reverse_dict(admin_status_dict) if reverse else admin_status_dict
+        if reverse:
+            return self.get_dict(device_ip, 'AdminStatus', True)
+        else:
+            return self.get_dict(device_ip, 'AdminStatus')
 
     def get_medium_type_dict(self, device_ip: str, reverse: bool = False) -> Dict:
         """
@@ -116,10 +131,10 @@ class SWToolz:
         :return: словарь соответсвия
         """
 
-        command = 'MediumType'
-        medium_type_dict = self.execute(device_ip, [command])[command]
-
-        return self.reverse_dict(medium_type_dict) if reverse else medium_type_dict
+        if reverse:
+            return self.get_dict(device_ip, 'MediumType', True)
+        else:
+            return self.get_dict(device_ip, 'MediumType')
 
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
