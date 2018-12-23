@@ -180,6 +180,17 @@ class SWToolz:
 
         return self.get_dict(device_ip, 'ActualStatus')
 
+    def get_actual_speed_dict(self, device_ip: str) -> Dict:
+        """
+        Возвращает словарь сопоставления скоростей для порта.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: Dict
+        :return: словать ActualSpeed
+        """
+
+        return self.get_dict(device_ip, 'ActualSpeed')
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
