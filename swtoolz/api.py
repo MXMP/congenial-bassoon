@@ -158,6 +158,17 @@ class SWToolz:
 
         return self.get_dict(device_ip, 'StackInfo')
 
+    def get_commands(self, device_ip: str) -> List:
+        """
+        Возвращает список рекомендуемых команд для данного устройства.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: List
+        :return: список рекомендуемых комманд
+        """
+
+        return self.execute(device_ip, ['Commands'])['Commands']
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
