@@ -136,6 +136,17 @@ class SWToolz:
         else:
             return self.get_dict(device_ip, 'MediumType')
 
+    def get_device_map(self, device_ip: str) -> List:
+        """
+        Возвращает "карту портов" для устройства.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype List:
+        :return: карта портов в виде списка слотов
+        """
+
+        return self.execute(device_ip, ['DeviceMap'])['DeviceMap']
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
