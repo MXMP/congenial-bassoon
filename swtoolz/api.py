@@ -147,6 +147,17 @@ class SWToolz:
 
         return self.execute(device_ip, ['DeviceMap'])['DeviceMap']
 
+    def get_stack_info(self, device_ip: str) -> Dict:
+        """
+        Возвращает словарь "StackInfo".
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: Dict
+        :return: словарь "StackInfo"
+        """
+
+        return self.get_dict(device_ip, 'StackInfo')
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
