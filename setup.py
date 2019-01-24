@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="swtoolz",
-    version="0.0.1",
+    version="0.2.0",
     author="Kirill Belyaev",
     author_email="bandoftoys@gmail.com",
     description="SWToolz-Core API wrapper.",
