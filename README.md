@@ -1,6 +1,6 @@
 # SWToolz-Core API wrapper
 
-Make queries to [Swtools-Core](https://github.com/MXMP/swtoolz-core) (forked from [xcme/swtoolz-core](https://github.com/xcme/swtoolz-core)) easier than ever.
+Make queries to [Swtoolz-Core](https://github.com/MXMP/swtoolz-core) (forked from [xcme/swtoolz-core](https://github.com/xcme/swtoolz-core)) easier than ever.
 
 ## Install
 

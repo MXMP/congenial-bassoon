@@ -199,3 +199,30 @@ class SWToolz:
             return admin_status_dict[status_code]
         except IndexError:
             return ''
+
+    def get_port_actual_status(self, device_ip: str, port_num: int, media: str = 'copper') -> str:
+        """
+        Возвращает актуальное состояние порта 'linkup'/'linkdown'.
+
+        :param str device_ip: ip-адрес коммутатора
+        :param int port_num: номер порта коммутатора
+        :param str media: тип среды ('copper'/'fiber'), по-умолчанию - "медь"
+        :rtype str:
+        :return: актуальное состояние ('linkup'/'linkdown')
+        """
+
+        # К сожалению, API SWToolz-Core не очень удобен. Поэтому чтобы понять какой числовой код какому типу среды или
+        # актуальному состоянию соответствует, нужно сначала спросить "словари соответствия" ActualStatus и
+        # MediumType. Сделано это так, потому что на всех устройствах разные SNMP индексы для состояний.
+        actual_status_dict = self.get_dict(device_ip, 'ActualStatus')
+        medium_type_dict = self.get_medium_type_dict(device_ip, True)
+
+        # Для того, что бы узнасть актуальное состояние порта нужно послать SWToolz-Core команду
+        # get_SinglePort/{номер порта}, тем самым узнав всю информацию об этом порту. А потом уже оттуда выбрать, то
+        # что нужно.
+        actual_status = self.execute(device_ip, [f'get_SinglePort/{port_num}'])
+        try:
+            status_code = actual_status['ActualStatus'][f'{port_num}.{medium_type_dict[media]}']
+            return actual_status_dict[status_code]
+        except IndexError:
+            return ''
