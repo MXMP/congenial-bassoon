@@ -136,6 +136,61 @@ class SWToolz:
         else:
             return self.get_dict(device_ip, 'MediumType')
 
+    def get_device_map(self, device_ip: str) -> List:
+        """
+        Возвращает "карту портов" для устройства.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype List:
+        :return: карта портов в виде списка слотов
+        """
+
+        return self.execute(device_ip, ['DeviceMap'])['DeviceMap']
+
+    def get_stack_info(self, device_ip: str) -> Dict:
+        """
+        Возвращает словарь "StackInfo".
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: Dict
+        :return: словарь "StackInfo"
+        """
+
+        return self.get_dict(device_ip, 'StackInfo')
+
+    def get_commands(self, device_ip: str) -> List:
+        """
+        Возвращает список рекомендуемых команд для данного устройства.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: List
+        :return: список рекомендуемых комманд
+        """
+
+        return self.execute(device_ip, ['Commands'])['Commands']
+
+    def get_actual_status_dict(self, device_ip: str) -> Dict:
+        """
+        Возвращает словарь сопоставления статуса порта (линк есть или нет).
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: Dict
+        :return: словарь ActualStatus
+        """
+
+        return self.get_dict(device_ip, 'ActualStatus')
+
+    def get_actual_speed_dict(self, device_ip: str) -> Dict:
+        """
+        Возвращает словарь сопоставления скоростей для порта.
+
+        :param str device_ip: ip-адрес коммутатора
+        :rtype: Dict
+        :return: словать ActualSpeed
+        """
+
+        return self.get_dict(device_ip, 'ActualSpeed')
+
     # TODO: сделать какой-то wrapper для запросов к SWToolz-Core, что бы нормально распозновать ошибки
     def change_port_admin_state(self, device_ip: str, port_num: int, target_state: str) -> bool:
         """
